@@ -1,54 +1,52 @@
-name: Build Android APK (produce APK artifact)
+name: Build Android APK (Cordova 9 fallback)
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
+  push:
+    branches: ["main"]
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
-      # Step 1: Checkout your repository
-      - name: Checkout repo (no submodules)
-        uses: actions/checkout@v4
-        with:
-          submodules: false
+      - uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js
+      - name: Setup Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '18'
 
-      # Step 3: Install Cordova globally
       - name: Install Cordova
-        run: npm install -g cordova
+        run: npm install -g cordova@10.0.0
 
-      # Step 4: Install project dependencies
       - name: Install project deps
         run: npm ci || npm install
-        working-directory: .
 
-      # Step 5: Ensure clean Android platform
-      - name: Ensure Android platform clean
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 30
+          build-tools: 30.0.3
+          components: platform-tools,platforms;android-30
+
+      - name: Ensure Android platform clean (Cordova-Android 9)
         run: |
           cordova platform rm android || true
-          cordova platform add android@10.1.2
-        working-directory: .
+          cordova platform add android@9.1.0
+        shell: bash
 
-      # Step 6: Build APK (force APK, not AAB)
       - name: Build APK
         run: cordova build android --release -- --packageType=apk
-        working-directory: .
+        shell: bash
 
-      # Step 7: Show build outputs (optional, for debugging)
-      - name: Show build outputs
-        run: ls -la platforms/android/app/build/outputs || true
-        working-directory: .
-
-      # Step 8: Upload generated APK(s) as artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
