@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -34,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MyApp-release
-          path: MyAppCordova/platforms/android/app/build/outputs/apk/release/app-release.apk
+          path: platforms/android/app/build/outputs/**/*.apk
