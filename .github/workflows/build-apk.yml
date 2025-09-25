@@ -1,53 +1,60 @@
-name: Build Android APK (Cordova 9 fallback)
+name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout your repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup Java 11
+      # 2. Setup Java 17 (required for latest Android SDK tools)
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
+      # 3. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '18'  # Node 18 is stable with Cordova
 
+      # 4. Install Cordova CLI
       - name: Install Cordova
-        run: npm install -g cordova@10.0.0
+        run: npm install -g cordova@10.1.2
 
-      - name: Install project deps
+      # 5. Install project dependencies
+      - name: Install project dependencies
         run: npm ci || npm install
+        working-directory: .
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 30
-          build-tools: 30.0.3
-          components: platform-tools,platforms;android-30
-
-      - name: Ensure Android platform clean (Cordova-Android 9)
+      # 6. Ensure Android platform is clean
+      - name: Clean and add Android platform
         run: |
           cordova platform rm android || true
-          cordova platform add android@9.1.0
-        shell: bash
+          cordova platform add android@10.1.2
+        working-directory: .
 
-      - name: Build APK
+      # 7. Build the APK
+      - name: Build APK (force APK, not AAB)
         run: cordova build android --release -- --packageType=apk
-        shell: bash
+        working-directory: .
 
-      - name: Upload APK artifact
+      # 8. Show build outputs for debugging
+      - name: Show build outputs
+        run: ls -la platforms/android/app/build/outputs
+        working-directory: .
+
+      # 9. Upload the generated APK(s)
+      - name: Upload generated APK
         uses: actions/upload-artifact@v4
         with:
           name: MyApp-APK
