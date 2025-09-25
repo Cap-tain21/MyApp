@@ -4,51 +4,34 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repo without submodules
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: false
 
-      # 2. Set up Node.js (Cordova depends on Node)
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
 
-      # 3. Install Cordova
       - name: Install Cordova
         run: npm install -g cordova
 
-      # 4. Install dependencies in your folder
-      - name: Install project dependencies
-        run: |
-          cd MyAppCordova
-          npm install
+      - name: Install dependencies
+        run: npm install
 
-      # 5. Add Android platform if missing
       - name: Add Android platform
-        run: |
-          cd MyAppCordova
-          cordova platform add android || echo "Platform already exists"
+        run: cordova platform add android
 
-      # 6. Build the APK
-      - name: Build APK
-        run: |
-          cd MyAppCordova
-          cordova build android --release
+      - name: Build Android APK
+        run: cordova build android --release
 
-      # 7. Upload the APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MyApp-APK
-          path: MyAppCordova/platforms/android/app/build/outputs/**/*.apk
+          name: MyApp-release
+          path: MyAppCordova/platforms/android/app/build/outputs/apk/release/app-release.apk
