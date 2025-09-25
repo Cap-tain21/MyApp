@@ -2,28 +2,28 @@ name: Build APK
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Cordova
+        run: npm install -g cordova
 
-      - name: Build Cordova Android
+      - name: Build APK
+        working-directory: MyAppCordova
         run: |
-          npm install -g cordova
           cordova platform add android
           cordova build android --release
 
@@ -31,4 +31,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MyApp-APK
-          path: platforms/android/app/build/outputs/apk/release/*.apk
+          path: MyAppCordova/platforms/android/app/build/outputs/apk/release/*.apk
