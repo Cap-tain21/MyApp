@@ -1,20 +1,19 @@
-name: Build Android APK (produce APK artifact)
+name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ "main" ]   # Run when you push to main branch
+  workflow_dispatch:        # Allows manual run from GitHub
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo (no submodules)
-        uses: actions/checkout@v4
-        with:
-          submodules: false
 
-      - name: Setup Node.js
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -22,25 +21,23 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Install project deps (if any)
+      - name: Install project dependencies
         run: npm ci || npm install
-        working-directory: .
 
-      - name: Ensure Android platform clean
+      - name: Remove old Android platform
+        run: cordova platform rm android || true
+
+      - name: Add Android platform (Cordova-Android 10.1.2)
+        run: cordova platform add android@10.1.2
+
+      - name: Fix Gradle version (8.3)
         run: |
-          cordova platform rm android || true
-          cordova platform add android@10.1.2
-        working-directory: .
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.3-bin.zip" > platforms/android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Build APK (force APK, not AAB)
         run: cordova build android --release -- --packageType=apk
-        working-directory: .
 
-      - name: Show build outputs (debug)
-        run: ls -la platforms/android/app/build/outputs || true
-        working-directory: .
-
-      - name: Upload generated APK(s)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: MyApp-APK
