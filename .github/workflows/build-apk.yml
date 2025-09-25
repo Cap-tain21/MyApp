@@ -1,53 +1,47 @@
-name: Build APK
+name: Build Android APK (produce APK artifact)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo (no submodules)
         uses: actions/checkout@v4
         with:
           submodules: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install project deps (if any)
+        run: npm ci || npm install
+        working-directory: .
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/build.gradle') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Clean and add Android platform
+      - name: Ensure Android platform clean
         run: |
           cordova platform rm android || true
-          cordova platform add android
+          cordova platform add android@10.1.2
+        working-directory: .
 
-      - name: Build Android APK
-        run: cordova build android --release
+      - name: Build APK (force APK, not AAB)
+        run: cordova build android --release -- --packageType=apk
+        working-directory: .
 
-      - name: Upload APK/AAB artifacts
+      - name: Show build outputs (debug)
+        run: ls -la platforms/android/app/build/outputs || true
+        working-directory: .
+
+      - name: Upload generated APK(s)
         uses: actions/upload-artifact@v4
         with:
-          name: MyApp-release
-          path: |
-            platforms/android/app/build/outputs/**/*.apk
-            platforms/android/app/build/outputs/**/*.aab
+          name: MyApp-APK
+          path: platforms/android/app/build/outputs/**/*.apk
