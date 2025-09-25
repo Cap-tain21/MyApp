@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Build APK
 
 on:
@@ -39,3 +40,48 @@ jobs:
         with:
           name: MyApp-APK
           path: platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+=======
+name: Build Android APK
+
+on:
+  workflow_dispatch:   # Allows manual triggering from GitHub Actions
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Install Cordova globally
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      # 4. Install project dependencies
+      - name: Install npm dependencies
+        run: npm install
+
+      # 5. Prepare Android platform
+      - name: Add Android Platform
+        run: cordova platform add android@12.1.1 || true
+
+      # 6. Build the APK
+      - name: Build Android APK
+        run: cordova build android --release
+
+      # 7. Upload APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-APK
+          path: platforms/android/app/build/outputs/apk/release/app-release.apk
+>>>>>>> 9a5d164 (Add APK build workflow)
