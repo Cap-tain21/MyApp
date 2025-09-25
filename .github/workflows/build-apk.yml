@@ -4,48 +4,48 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allows manual run
+  workflow_dispatch:
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    steps:
-      # 1. Checkout repo without submodules
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: false
 
-      # 2. Set up Node.js
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Install Cordova globally
+      # 3️⃣ Install Cordova globally
       - name: Install Cordova
         run: npm install -g cordova
 
-      # 4. Install project dependencies
-      - name: Install dependencies
+      # 4️⃣ Navigate to your app folder
+      - name: Navigate to MyAppCordova
         working-directory: MyAppCordova
-        run: npm install
+        run: |
+          npm install
 
-      # 5. Prepare Android platform
+      # 5️⃣ Add Android platform (skip if already added)
       - name: Add Android platform
         working-directory: MyAppCordova
         run: |
-          cordova platform rm android || true
-          cordova platform add android
+          cordova platform add android || echo "Android platform already exists"
 
-      # 6. Build APK
+      # 6️⃣ Build the APK
       - name: Build APK
         working-directory: MyAppCordova
-        run: cordova build android --release
+        run: |
+          cordova build android --release
 
-      # 7. Upload APK artifact
+      # 7️⃣ Upload the APK as artifact
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: MyApp-APK
-          path: MyAppCordova/platforms/android/app/build/outputs/apk/release/app-release.apk
+          path: MyAppCordova/platforms/android/app/build/outputs/apk/release/*.apk
