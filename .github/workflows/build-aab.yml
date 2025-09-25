@@ -1,0 +1,97 @@
+name: Build Android AAB (Cordova + Java17 + Gradle8.3)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova@10.1.2
+
+      - name: Install project dependencies
+        run: npm ci || npm install
+        working-directory: .
+
+      - name: Install Android SDK command-line tools & packages
+        run: |
+          mkdir -p $ANDROID_SDK_ROOT
+          cd $ANDROID_SDK_ROOT
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d cmdline-tools-tmp
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools-tmp/cmdline-tools/* cmdline-tools/latest/
+          rm -rf cmdline-tools.zip cmdline-tools-tmp
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+        shell: bash
+
+      - name: Add SDK tools to PATH
+        run: |
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+
+      - name: Ensure Android platform clean
+        run: |
+          cordova platform rm android || true
+          cordova platform add android@10.1.2
+        shell: bash
+        working-directory: .
+
+      - name: Force Gradle wrapper to 8.3
+        run: |
+          mkdir -p platforms/android/gradle/wrapper
+          cat > platforms/android/gradle/wrapper/gradle-wrapper.properties <<'EOF'
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-bin.zip
+EOF
+        shell: bash
+        working-directory: .
+
+      - name: Download Gradle 8.3 (add to PATH)
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.3-bin.zip -O gradle-8.3.zip
+          unzip -q gradle-8.3.zip
+          echo "$PWD/gradle-8.3/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Build AAB (bundle)
+        run: cordova build android --release -- --packageType=bundle
+        shell: bash
+        working-directory: .
+
+      - name: Show bundle outputs (debug)
+        run: ls -la platforms/android/app/build/outputs/bundle/release || true
+        shell: bash
+        working-directory: .
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-AAB
+          path: platforms/android/app/build/outputs/bundle/release/*.aab
