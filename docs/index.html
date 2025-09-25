@@ -132,7 +132,7 @@ console.log('App loaded!');
                             <i class="fas fa-sync-alt"></i> Refresh
                         </button>
                         <select id="deviceSize">
-                            <option value="mobile">Mobile (100%)</option>
+                            <option value="mobile">Mobile (360x640)</option>
                             <option value="tablet">Tablet (768x1024)</option>
                             <option value="desktop">Desktop (100%)</option>
                         </select>
@@ -218,6 +218,79 @@ console.log('App loaded!');
             <div class="modal-footer">
                 <button class="modal-btn secondary">Cancel</button>
                 <button class="modal-btn primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APK Export Modal -->
+    <div class="modal" id="apkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📱 Export Android APK</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="apk-export-content">
+                    <div class="apk-steps">
+                        <div class="apk-step">
+                            <span class="step-number">1</span>
+                            <span>Save your project first</span>
+                        </div>
+                        <div class="apk-step">
+                            <span class="step-number">2</span>
+                            <span>Click "Generate APK" below</span>
+                        </div>
+                        <div class="apk-step">
+                            <span class="step-number">3</span>
+                            <span>Download from GitHub Actions</span>
+                        </div>
+                    </div>
+                    
+                    <div class="apk-actions">
+                        <button class="modal-btn primary" id="generateApkBtn">
+                            <i class="fas fa-robot"></i> Generate APK
+                        </button>
+                        <button class="modal-btn secondary" id="apkHelpBtn">
+                            <i class="fas fa-question-circle"></i> How to Download
+                        </button>
+                    </div>
+                    
+                    <div id="apkStatus" class="apk-status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APK Help Modal -->
+    <div class="modal" id="apkHelpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📖 APK Download Guide</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-steps">
+                    <div class="help-step">
+                        <strong>Step 1:</strong> Click "Generate APK" button
+                    </div>
+                    <div class="help-step">
+                        <strong>Step 2:</strong> You'll be redirected to GitHub Actions
+                    </div>
+                    <div class="help-step">
+                        <strong>Step 3:</strong> Click on the latest workflow run
+                    </div>
+                    <div class="help-step">
+                        <strong>Step 4:</strong> Scroll down to "Artifacts" section
+                    </div>
+                    <div class="help-step">
+                        <strong>Step 5:</strong> Click "MyApp-APK" to download
+                    </div>
+                </div>
+                <div class="help-link">
+                    <a href="https://github.com/Cap-tan21/MyApp/actions" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Go to GitHub Actions
+                    </a>
+                </div>
             </div>
         </div>
     </div>

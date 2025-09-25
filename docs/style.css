@@ -536,6 +536,96 @@ textarea {
     to { transform: translateX(0); opacity: 1; }
 }
 
+/* ===== APK EXPORT STYLES ===== */
+.apk-export-content {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.apk-steps {
+    margin: 30px 0;
+}
+
+.apk-step {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    border-left: 4px solid #4CAF50;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+.apk-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.apk-actions .modal-btn {
+    flex: 1;
+}
+
+.apk-status {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    min-height: 50px;
+}
+
+.help-steps {
+    text-align: left;
+}
+
+.help-step {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.help-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.help-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.help-link a:hover {
+    text-decoration: underline;
+}
+
+/* Update export button gradient */
+#exportBtn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+#exportBtn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+}
+
 /* Tablet and Desktop Responsive */
 @media (min-width: 768px) {
     body {
@@ -560,6 +650,16 @@ textarea {
         font-size: 12px;
         padding: 10px 15px;
     }
+    
+    /* APK Export Responsive Adjustments */
+    .apk-actions {
+        justify-content: flex-start;
+    }
+    
+    .apk-actions .modal-btn {
+        flex: 0 1 auto;
+        min-width: 120px;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -570,5 +670,16 @@ textarea {
     
     .projects-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* APK Export Desktop Adjustments */
+    .apk-steps {
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .apk-step {
+        padding: 20px;
     }
 }
