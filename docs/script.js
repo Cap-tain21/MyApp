@@ -1,3 +1,6 @@
+// Wait for DOM to be fully loaded before initializing
+document.addEventListener('DOMContentLoaded', function() {
+
 // Web App Maker - Main JavaScript File
 class WebAppMaker {
     constructor() {
@@ -203,15 +206,15 @@ class WebAppMaker {
         document.getElementById(`${editorName}-editor`).classList.add('active');
     }
 
-    // Run code preview
+    // Run code preview - FIXED VERSION
     runPreview() {
         const html = document.getElementById('htmlCode').value;
         const css = document.getElementById('cssCode').value;
         const js = document.getElementById('jsCode').value;
 
         const previewFrame = document.getElementById('preview');
-        const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
-
+        
+        // Use srcdoc instead of document.write for better reliability
         const previewHTML = `
             <!DOCTYPE html>
             <html>
@@ -221,14 +224,32 @@ class WebAppMaker {
             </head>
             <body>
                 ${html}
-                <script>${js}<\/script>
+                <script>
+                    // Error handling for preview JS
+                    try {
+                        ${js}
+                    } catch(e) {
+                        console.error('Preview JS Error:', e);
+                    }
+                <\/script>
             </body>
             </html>
         `;
 
-        previewDocument.open();
-        previewDocument.write(previewHTML);
-        previewDocument.close();
+        // Use srcdoc attribute which is more reliable than document.write
+        previewFrame.srcdoc = previewHTML;
+        
+        // Add error handling for iframe loading
+        previewFrame.onload = () => {
+            try {
+                // Add error handler to preview window
+                previewFrame.contentWindow.onerror = function(msg, url, lineNo, colNo, error) {
+                    console.log('Preview Error:', msg, 'at line', lineNo);
+                };
+            } catch (e) {
+                // Cross-origin errors are expected, ignore them
+            }
+        };
 
         this.showToast('Preview updated successfully!', 'success');
     }
@@ -652,10 +673,8 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = darkModeStyles;
 document.head.appendChild(styleSheet);
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new WebAppMaker();
-});
+// Initialize the app
+window.app = new WebAppMaker();
 
 // Service Worker registration for PWA capabilities (future enhancement)
 if ('serviceWorker' in navigator) {
@@ -663,3 +682,5 @@ if ('serviceWorker' in navigator) {
         // navigator.serviceWorker.register('/sw.js');
     });
 }
+
+}); // End of DOMContentLoaded
