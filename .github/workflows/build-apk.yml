@@ -12,17 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Gradle 8.3
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 8.3
+          submodules: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -35,17 +26,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Remove Android platform (clean)
-        run: cordova platform rm android || true
-
-      - name: Add Android platform
-        run: cordova platform add android
+      - name: Clean and add Android platform
+        run: |
+          cordova platform rm android || true
+          cordova platform add android
 
       - name: Build Android APK
         run: cordova build android --release
 
-      - name: Upload APK
+      - name: Upload APK/AAB artifacts
         uses: actions/upload-artifact@v4
         with:
           name: MyApp-release
-          path: platforms/android/app/build/outputs/**/*.apk
+          path: |
+            platforms/android/app/build/outputs/**/*.apk
+            platforms/android/app/build/outputs/**/*.aab
