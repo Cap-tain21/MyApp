@@ -1,4 +1,4 @@
-name: Build Android APK (Cordova, Java 17, Gradle 8.3)
+name: Build Android APK (Web App Maker, Cordova, Java 17, Gradle 8.3)
 
 on:
   push:
@@ -50,30 +50,30 @@ jobs:
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "platform-tools" "platforms;android-30" "build-tools;30.0.3"
         shell: bash
 
-      - name: Add Android SDK tools to PATH for rest of job
+      - name: Add Android SDK tools to PATH
         run: |
           echo "${{ env.ANDROID_SDK_ROOT }}/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "${{ env.ANDROID_SDK_ROOT }}/platform-tools" >> $GITHUB_PATH
 
-      - name: Ensure Android platform clean (cordova-android 10)
+      - name: Ensure Android platform clean
         run: |
           cordova platform rm android || true
           cordova platform add android@10.1.2
         shell: bash
 
-      - name: Create Gradle wrapper properties (use Gradle 8.3)
+      - name: Create Gradle wrapper properties (Gradle 8.3)
         run: |
           mkdir -p platforms/android/gradle/wrapper
           cat > platforms/android/gradle/wrapper/gradle-wrapper.properties <<'EOF'
-distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-bin.zip
-EOF
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-bin.zip
+          EOF
         shell: bash
 
-      - name: Download Gradle 8.3 (optional speedup)
+      - name: Download Gradle 8.3 (optional)
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.3-bin.zip -O gradle-8.3.zip
           unzip -q gradle-8.3.zip
@@ -91,7 +91,5 @@ EOF
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: myapp-apk
-          path: |
-            platforms/android/app/build/outputs/apk/release/app-release.apk
-            platforms/android/build/outputs/apk/**/*.apk
+          name: WebAppMaker-APK
+          path: platforms/android/app/build/outputs/**/*.apk
