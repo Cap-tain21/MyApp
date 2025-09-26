@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "com.example.myapp",
   "displayName": "MyApp",
   "version": "1.0.0",
@@ -21,3 +22,28 @@
     "cordova-android": "^10.1.2"
   }
 }
+=======
+  "name": "web-app-maker",
+  "version": "1.0.0",
+  "description": "Build mobile apps using HTML, CSS, and JavaScript",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "keywords": [
+    "mobile",
+    "app",
+    "builder",
+    "cordova",
+    "android"
+  ],
+  "author": "Web App Maker",
+  "license": "MIT"
+}
+>>>>>>> 96ab85d (Restore working web app environment)
