@@ -1,4 +1,4 @@
-name: Build Android AAB
+name: Build Android (AAB + APK)
 
 on:
   workflow_dispatch:
@@ -6,27 +6,45 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install -g cordova
-      - run: npm ci
-      - run: cordova platform remove android || true
-      - run: cordova platform add android@14.0.1 --no-interactive
-      - run: cordova build android --release -- --packageType=bundle
+      - name: Install Cordova
+        run: npm install -g cordova
 
-      - uses: actions/upload-artifact@v3
+      - name: Install project dependencies
+        run: npm ci || npm install
+
+      - name: Prepare Android platform
+        run: |
+          cordova platform remove android || true
+          cordova platform add android@14.0.1 --no-interactive
+
+      - name: Build Android AAB
+        run: cordova build android --release -- --packageType=bundle
+
+      - name: Build Android APK
+        run: cordova build android --release -- --packageType=apk
+
+      - name: Upload build artifacts (AAB + APK)
+        uses: actions/upload-artifact@v4
         with:
-          name: android-artifacts
-          path: platforms/android/app/build/outputs/bundle/release/app-release.aab
+          name: android-builds
+          path: |
+            platforms/android/app/build/outputs/bundle/release/app-release.aab
+            platforms/android/app/build/outputs/apk/release/app-release.apk
