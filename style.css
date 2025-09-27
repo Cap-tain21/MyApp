@@ -90,6 +90,21 @@ body {
     color: white;
 }
 
+/* Small logo on left side */
+.logo {
+    display: flex;
+    align-items: center;  /* Vertically center logo with text */
+    gap: 8px;             /* Space between logo and title */
+}
+
+.logo img {
+    height: 32px;         /* Small, fixed height */
+    width: auto;           /* Keep aspect ratio */
+    display: block;
+}
+
+}
+
 /* Main Container */
 .main-container {
     max-width: 100%;
