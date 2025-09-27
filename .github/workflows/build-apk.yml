@@ -1,4 +1,4 @@
-name: Build Android APK (Cordova, Java 17, Gradle 8.3)
+name: Build Android APK (Web App Maker, Cordova, Java 17, Gradle 8.3)
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -33,67 +35,61 @@ jobs:
 
       - name: Install project dependencies
         run: npm ci || npm install
-        working-directory: .
 
-      # Install Android command line tools
       - name: Install Android SDK command-line tools
         run: |
+          set -e
           mkdir -p $ANDROID_SDK_ROOT
           cd $ANDROID_SDK_ROOT
-          # download commandline tools (URL is stable; if it 404s check Google repo for latest)
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip -d cmdline-tools-tmp
           mkdir -p cmdline-tools/latest
           mv cmdline-tools-tmp/cmdline-tools/* cmdline-tools/latest/
           rm -rf cmdline-tools.zip cmdline-tools-tmp
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          # Accept licenses and install packages
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "platform-tools" "platforms;android-30" "build-tools;30.0.3"
         shell: bash
 
-      - name: Add Android SDK tools to PATH for rest of job
+      - name: Add Android SDK tools to PATH
         run: |
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "${{ env.ANDROID_SDK_ROOT }}/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "${{ env.ANDROID_SDK_ROOT }}/platform-tools" >> $GITHUB_PATH
 
-      # Ensure a clean Android platform and add the correct cordova-android
       - name: Ensure Android platform clean
         run: |
           cordova platform rm android || true
           cordova platform add android@10.1.2
-        working-directory: .
+        shell: bash
 
-      # Force Gradle wrapper to use 8.3 (fixes XmlParser / Gradle9 issues)
-      - name: Force Gradle wrapper to 8.3
+      - name: Create Gradle wrapper properties (Gradle 8.3)
         run: |
           mkdir -p platforms/android/gradle/wrapper
           cat > platforms/android/gradle/wrapper/gradle-wrapper.properties <<'EOF'
-distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-bin.zip
-EOF
-        working-directory: .
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-bin.zip
+          EOF
+        shell: bash
 
-      # Download Gradle 8.3 and add to PATH (optional but avoids wrapper lookup delays)
-      - name: Download Gradle 8.3
+      - name: Download Gradle 8.3 (optional)
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.3-bin.zip -O gradle-8.3.zip
           unzip -q gradle-8.3.zip
           echo "$PWD/gradle-8.3/bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Build APK (force APK, not AAB)
+      - name: Build APK (release)
         run: cordova build android --release -- --packageType=apk
-        working-directory: .
+        shell: bash
 
-      - name: Show build outputs (debug)
+      - name: Show build outputs
         run: ls -la platforms/android/app/build/outputs || true
-        working-directory: .
+        shell: bash
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MyApp-APK
+          name: WebAppMaker-APK
           path: platforms/android/app/build/outputs/**/*.apk

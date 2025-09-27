@@ -1,17 +1,26 @@
 {
-  "name": "com.example.myapp",
-  "displayName": "MyApp",
+  "name": "web-app-maker",
   "version": "1.0.0",
-  "description": "A sample Apache Cordova application that responds to the deviceready event.",
-  "main": "index.js",
+  "description": "Build mobile apps using HTML, CSS, and JavaScript",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
   },
   "keywords": [
-    "ecosystem:cordova"
+    "mobile",
+    "app",
+    "builder",
+    "cordova",
+    "android"
   ],
-  "author": "Apache Cordova Team",
-  "license": "Apache-2.0",
+  "author": "Web App Maker",
+  "license": "MIT",
   "cordova": {
     "platforms": [
       "android",
