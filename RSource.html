@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/idea.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2962ff;
+            --primary-light: #e3f2fd;
+            --secondary: #00c853;
+            --text: #263238;
+            --text-light: #546e7a;
+            --border: #cfd8dc;
+            --background: #f5f7fa;
+            --white: #ffffff;
+            --header-height: 60px;
+            --toolbar-height: 50px;
+            --footer-height: 30px;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            height: var(--header-height);
+            background-color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e53e5;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #00b248;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background-color: #f0f0f0;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            background-color: var(--white);
+        }
+
+        .toolbar {
+            height: var(--toolbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--white);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 20px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            border-radius: 4px 4px 0 0;
+            background-color: #f5f5f5;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background-color: var(--white);
+            color: var(--primary);
+            font-weight: 500;
+            border-bottom: 1px solid var(--white);
+            margin-bottom: -1px;
+        }
+
+        .editor-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .CodeMirror {
+            height: 100%;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--white);
+        }
+
+        .preview-controls {
+            height: var(--toolbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 20px;
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border);
+            gap: 15px;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .size-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .size-input {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .size-input span {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .size-input input {
+            width: 70px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .icon-btn {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background-color: transparent;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .preview-container {
+            flex: 1;
+            border: none;
+            background-color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: #f0f2f5;
+            overflow: auto;
+        }
+
+        .preview-frame-container {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            width: 100%;
+            height: 500px;
+        }
+
+        iframe {
+            border: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        footer {
+            height: var(--footer-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background-color: var(--white);
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .status-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* CodeMirror light theme adjustments */
+        .cm-s-idea .CodeMirror-gutters {
+            background-color: #f5f5f5;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .cm-s-idea .CodeMirror-linenumber {
+            color: #9e9e9e;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .editor-panel, .preview-panel {
+                min-height: 50%;
+            }
+            
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .preview-controls {
+                justify-content: space-between;
+            }
+            
+            .preview-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            
+            .size-controls {
+                order: 3;
+                width: 100%;
+                justify-content: flex-end;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            <span>Editor</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="downloadBtn">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="editor-panel">
+            <div class="toolbar">
+                <div class="tabs">
+                    <div class="tab active" data-lang="html">HTML</div>
+                    <div class="tab" data-lang="css">CSS</div>
+                    <div class="tab" data-lang="js">JavaScript</div>
+                </div>
+            </div>
+            <div class="editor-container">
+                <textarea id="html-code"><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Project</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Code Editor</h1>
+        <p>Edit the HTML, CSS, and JavaScript to see live changes in the preview.</p>
+        <button id="demo-button">Click Me!</button>
+        <div id="output"></div>
+    </div>
+</body>
+</html></textarea>
+                <textarea id="css-code">body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+h1 {
+    color: #2962ff;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    color: #546e7a;
+}
+
+#demo-button {
+    background-color: #2962ff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#demo-button:hover {
+    background-color: #1e53e5;
+}
+
+#output {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}</textarea>
+                <textarea id="js-code">document.addEventListener('DOMContentLoaded', function() {
+    const demoButton = document.getElementById('demo-button');
+    const output = document.getElementById('output');
+    
+    demoButton.addEventListener('click', function() {
+        output.innerHTML = `
+            <h3>Button Clicked!</h3>
+            <p>You've successfully executed JavaScript code.</p>
+            <p>Current time: ${new Date().toLocaleTimeString()}</p>
+        `;
+        
+        // Add some visual feedback
+        output.style.backgroundColor = '#e3f2fd';
+        output.style.borderLeft = '4px solid #2962ff';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+            output.style.backgroundColor = 'white';
+            output.style.borderLeft = 'none';
+        }, 3000);
+    });
+    
+    console.log('JavaScript is working correctly!');
+});</textarea>
+            </div>
+        </div>
+
+        <div class="preview-panel">
+            <div class="preview-controls">
+                <div class="size-controls">
+                    <div class="size-input">
+                        <span>W:</span>
+                        <input type="text" id="preview-width" placeholder="800px" value="100%">
+                    </div>
+                    <div class="size-input">
+                        <span>H:</span>
+                        <input type="text" id="preview-height" placeholder="600px" value="500px">
+                    </div>
+                </div>
+                <div class="preview-actions">
+                    <button class="icon-btn" id="fullscreenBtn" title="Full Screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-container">
+                <div class="preview-frame-container" id="preview-frame-container">
+                    <iframe id="preview"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="status-info">
+            <span>Editor v1.0</span>
+        </div>
+        <div class="status-info">
+            <span>Ready</span>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+    
+    <script>
+        // Initialize CodeMirror editors
+        const htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-code'), {
+            mode: 'htmlmixed',
+            theme: 'idea',
+            lineNumbers: true,
+            autoCloseTags: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            lineWrapping: true,
+            styleActiveLine: true
+        });
+
+        const cssEditor = CodeMirror.fromTextArea(document.getElementById('css-code'), {
+            mode: 'css',
+            theme: 'idea',
+            lineNumbers: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            lineWrapping: true,
+            styleActiveLine: true
+        });
+
+        const jsEditor = CodeMirror.fromTextArea(document.getElementById('js-code'), {
+            mode: 'javascript',
+            theme: 'idea',
+            lineNumbers: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            lineWrapping: true,
+            styleActiveLine: true
+        });
+
+        // Get DOM elements
+        const tabs = document.querySelectorAll('.tab');
+        const preview = document.getElementById('preview');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const previewWidth = document.getElementById('preview-width');
+        const previewHeight = document.getElementById('preview-height');
+        const previewFrameContainer = document.getElementById('preview-frame-container');
+
+        let currentEditor = htmlEditor;
+        let isFullscreen = false;
+
+        // Tab switching functionality
+        function switchTab(lang) {
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[data-lang="${lang}"]`).classList.add('active');
+            
+            // Hide all editors
+            htmlEditor.getWrapperElement().style.display = 'none';
+            cssEditor.getWrapperElement().style.display = 'none';
+            jsEditor.getWrapperElement().style.display = 'none';
+            
+            // Show selected editor
+            if (lang === 'html') {
+                htmlEditor.getWrapperElement().style.display = 'block';
+                currentEditor = htmlEditor;
+            } else if (lang === 'css') {
+                cssEditor.getWrapperElement().style.display = 'block';
+                currentEditor = cssEditor;
+            } else if (lang === 'js') {
+                jsEditor.getWrapperElement().style.display = 'block';
+                currentEditor = jsEditor;
+            }
+        }
+
+        // Initialize with HTML tab active
+        switchTab('html');
+
+        // Update preview
+        function updatePreview() {
+            const html = htmlEditor.getValue();
+            const css = `<style>${cssEditor.getValue()}</style>`;
+            const js = `<script>${jsEditor.getValue()}<\/script>`;
+            preview.srcdoc = html + css + js;
+        }
+
+        // Update preview size
+        function updatePreviewSize() {
+            const width = previewWidth.value || '100%';
+            const height = previewHeight.value || '500px';
+            
+            previewFrameContainer.style.width = width;
+            previewFrameContainer.style.height = height;
+            
+            // Update iframe dimensions
+            preview.style.width = '100%';
+            preview.style.height = '100%';
+        }
+
+        // Toggle fullscreen preview
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                // Store current dimensions
+                const currentWidth = previewFrameContainer.style.width;
+                const currentHeight = previewFrameContainer.style.height;
+                
+                // Enter fullscreen
+                previewFrameContainer.style.width = '100vw';
+                previewFrameContainer.style.height = '100vh';
+                previewFrameContainer.style.borderRadius = '0';
+                previewFrameContainer.style.zIndex = '1000';
+                previewFrameContainer.style.position = 'fixed';
+                previewFrameContainer.style.top = '0';
+                previewFrameContainer.style.left = '0';
+                
+                // Update button
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                fullscreenBtn.title = 'Exit Full Screen';
+                isFullscreen = true;
+                
+                // Store current dimensions for when we exit
+                previewFrameContainer.dataset.originalWidth = currentWidth;
+                previewFrameContainer.dataset.originalHeight = currentHeight;
+            } else {
+                // Exit fullscreen
+                previewFrameContainer.style.width = previewFrameContainer.dataset.originalWidth || '100%';
+                previewFrameContainer.style.height = previewFrameContainer.dataset.originalHeight || '500px';
+                previewFrameContainer.style.borderRadius = '6px';
+                previewFrameContainer.style.zIndex = 'auto';
+                previewFrameContainer.style.position = 'static';
+                
+                // Update button
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = 'Full Screen';
+                isFullscreen = false;
+            }
+        }
+
+        // Download code
+        function downloadCode() {
+            const html = htmlEditor.getValue();
+            const css = `<style>\n${cssEditor.getValue()}\n</style>`;
+            const js = `<script>\n${jsEditor.getValue()}\n<\/script>`;
+            
+            const blob = new Blob([html + '\n' + css + '\n' + js], { type: "text/html" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "project.html";
+            link.click();
+        }
+
+        // Event listeners
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchTab(tab.dataset.lang);
+            });
+        });
+
+        downloadBtn.addEventListener('click', downloadCode);
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        
+        previewWidth.addEventListener('change', updatePreviewSize);
+        previewHeight.addEventListener('change', updatePreviewSize);
+        previewWidth.addEventListener('input', updatePreviewSize);
+        previewHeight.addEventListener('input', updatePreviewSize);
+        
+        // Auto-update preview with debouncing
+        let previewTimeout;
+        [htmlEditor, cssEditor, jsEditor].forEach(editor => {
+            editor.on('change', () => {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(updatePreview, 500);
+            });
+        });
+
+        // Initialize preview and size
+        updatePreview();
+        updatePreviewSize();
+    </script>
+</body>
+</html>
